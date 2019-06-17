@@ -2,7 +2,10 @@
     "packageDirectories": [
         {
             "path": "force-di",
-            "default": true
+            "default": true,
+            "package": "force-di",
+            "versionName": "ver 0.1",
+            "versionNumber": "0.1.0.NEXT"
         },
         {
             "path": "force-di-trigger-demo",
@@ -23,5 +26,8 @@
     ],
     "namespace": "",
     "sfdcLoginUrl": "https://login.salesforce.com",
-    "sourceApiVersion": "44.0"
+    "sourceApiVersion": "44.0",
+    "packageAliases": {
+        "force-di": "0Ho0o0000008ORqCAM"
+    }
 }
