@@ -9,6 +9,10 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+- group: prod
+
+
 steps:
 - task: sfpwowerkit-installsfdx-task@1
 
