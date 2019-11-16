@@ -1,0 +1,58 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: sfpwowerkit-installsfdx-task@1
+  inputs:
+
+- task: sfpwowerscript-validatedxunlockedpackage-task@2
+  inputs:
+    package: 'force-di'
+    bypass: 'sharingrules'
+
+- task: sfpwowerkit-authenticatedevhub-task@0
+  inputs:
+    jwt_key_file: 'devhub.key'
+    username: '$(prod.user)'
+    alias: 'HubOrg'
+    clientid: '$(prod.consumerkey)'
+
+- task: sfpower-managescratchorg@2
+  inputs:
+    action: 'Create'
+    config_file_path: 'config/project-scratch-def.json'
+    alias: 'scratchorg'
+    devhub_alias: 'HubOrg'
+
+- task: sfpowerscript-deploysourcetoorg-task@2
+  inputs:
+    target_org: 'scratchorg'
+    source_directory: 'force-app'
+    checkonly: true
+    wait_time: '20'
+    testlevel: 'NoTestRun'
+
+- task: sfpwowerscript-triggerapextest-task@1
+  inputs:
+    target_org: 'scratchorg'
+    testlevel: 'RunLocalTests'
+    wait_time: '60'
+
+- task: sfpwowerscript-validateapextestcoverage-task@1
+  inputs:
+    target_org: 'scratchorg'
+    test_coverage: '36'
+
+- task: sfpower-managescratchorg@2
+  inputs:
+    action: 'Delete'
+    target_org: 'scratchorg'
+    devhub_alias: 'HubOrg'
