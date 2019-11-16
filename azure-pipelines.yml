@@ -1,3 +1,9 @@
+trigger:
+  branches:
+      include:
+      - master
+      - release
+
 pr:
 - master
 
@@ -7,51 +13,73 @@ pool:
 variables:
 - group: prod
 
+stages:
+- stage: PR
+  condition: eq(variables['Build.Reason'], 'PullRequest'))
+  jobs:
+   - job: PRJob
+     steps:
+      - task: sfpwowerscript-installsfdx-task@2
+        displayName: "Install SFDX CLI along with sfpowerkit"
 
-steps:
-- task: sfpowerscript-installsfdx-task@2
-  
+      - task: sfpwowerscript-validatedxunlockedpackage-task@2
+        displayName: "Validate Unlocked Package for Coverage"
+        inputs:
+          package: 'force-di'
+          bypass: 'sharingrules'
+ 
+      - task: sfpwowerscript-authenticateorg-task@4
+        displayName: "Authenticate DevHub"
+        inputs:
+            method: 'JWT'
+            jwt_key_file: 'devhub.key'
+            username: '$(prod.username)'
+            alias: 'HubOrg'
+            isdevhub: true
+            clientid: '$(prod.consumerkey)'
 
-- task: sfpwowerscript-validatedxunlockedpackage-task@2
-  inputs:
-    package: 'force-di'
-    bypass: 'sharingrules'
+      - task: sfpwowerscript-managescratchorg-task@3
+        displayName: "Create a Scratch Org"
+        inputs:
+            action: 'Create'
+            config_file_path: 'config/project-scratch-def.json'
+            alias: 'scratchorg'
+            devhub_alias: 'HubOrg'
 
-- task: sfpwowerkit-authenticatedevhub-task@0
-  inputs:
-    jwt_key_file: 'devhub.key'
-    username: '$(prod.user)'
-    alias: 'HubOrg'
-    clientid: '$(prod.consumerkey)'
+      - task: sfpowerscript-deploysourcetoorg-task@2
+        displayName: "Deploy source to org"
+        inputs:
+            target_org: 'scratchorg'
+            source_directory: 'force-app'
+            checkonly: true
+            wait_time: '20'
+            testlevel: 'NoTestRun'
 
-- task: sfpower-managescratchorg@2
-  inputs:
-    action: 'Create'
-    config_file_path: 'config/project-scratch-def.json'
-    alias: 'scratchorg'
-    devhub_alias: 'HubOrg'
+      - task: sfpwowerscript-triggerapextest-task@1
+        displayName: "Trigger Apex Test"
+        inputs:
+            target_org: 'scratchorg'
+            testlevel: 'RunLocalTests'
+            wait_time: '60'
 
-- task: sfpowerscript-deploysourcetoorg-task@2
-  inputs:
-    target_org: 'scratchorg'
-    source_directory: 'force-app'
-    checkonly: true
-    wait_time: '20'
-    testlevel: 'NoTestRun'
+      - task: sfpwowerscript-validateapextestcoverage-task@1
+        displayName: "Validate Apex Test Coverage"
+        inputs:
+            target_org: 'scratchorg'
+            test_coverage: '36'
 
-- task: sfpwowerscript-triggerapextest-task@1
-  inputs:
-    target_org: 'scratchorg'
-    testlevel: 'RunLocalTests'
-    wait_time: '60'
+      - task: sfpwowerscript-managescratchorg-task@3
+        displayName: "Delete the created scatch org"
+        inputs:
+           action: 'Delete'
+           target_org: 'scratchorg'
+           devhub_alias: 'HubOrg'
 
-- task: sfpwowerscript-validateapextestcoverage-task@1
-  inputs:
-    target_org: 'scratchorg'
-    test_coverage: '36'
-
-- task: sfpower-managescratchorg@2
-  inputs:
-    action: 'Delete'
-    target_org: 'scratchorg'
-    devhub_alias: 'HubOrg'
+- stage: BUILD
+  condition: or(eq(variables['Build.Reason'], 'Manual'), eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'BatchedCI'))
+  jobs:
+   - job: BuildJob
+     steps:
+      - task: sfpwowerscript-installsfdx-task@2
+        displayName: "Install SFDX CLI along with sfpowerkit"
+     
