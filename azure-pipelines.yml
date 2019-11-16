@@ -15,9 +15,11 @@ variables:
 
 stages:
 - stage: PR
+  displayName: Validation
   condition: eq(variables['Build.Reason'], 'PullRequest')
   jobs:
    - job: PRJob
+     displayName: Automated Validation
      steps:
       - task: sfpwowerscript-installsfdx-task@2
         displayName: "Install SFDX CLI along with sfpowerkit"
@@ -75,10 +77,12 @@ stages:
            target_org: 'scratchorg'
            devhub_alias: 'HubOrg'
 
-- stage: BUILD
+- stage: Build
+  displayName: Packaging
   condition: or(eq(variables['Build.Reason'], 'Manual'), eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'BatchedCI'))
   jobs:
    - job: BuildJob
+     displayName: Build Unlocked Package
      steps:
       - task: sfpwowerscript-installsfdx-task@2
         displayName: "Install SFDX CLI along with sfpowerkit"
