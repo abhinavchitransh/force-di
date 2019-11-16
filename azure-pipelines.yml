@@ -11,7 +11,7 @@ pool:
 
 steps:
 - task: sfpwowerkit-installsfdx-task@1
-  inputs:
+
 
 - task: sfpwowerscript-validatedxunlockedpackage-task@2
   inputs:
