@@ -15,7 +15,7 @@ variables:
 
 stages:
 - stage: PR
-  condition: eq(variables['Build.Reason'], 'PullRequest'))
+  condition: eq(variables['Build.Reason'], 'PullRequest')
   jobs:
    - job: PRJob
      steps:
