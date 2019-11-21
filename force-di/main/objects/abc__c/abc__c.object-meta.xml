@@ -7,4 +7,5 @@
     </nameField>
     <pluralLabel>abc</pluralLabel>
     <visibility>Public</visibility>
+    <deploymentStatus>Deployed</deploymentStatus>
 </CustomObject>
