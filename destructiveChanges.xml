@@ -2,6 +2,6 @@
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
   <types>
     <name>CustomField</name>
-    <members>abc__c.demo__c</members>
+    <members>abc__c.demo1__c</members>
   </types>
 </Package>
